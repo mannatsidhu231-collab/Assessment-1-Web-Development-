@@ -10,7 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let mx = -100, my = -100;
   let prevMx = -100, prevMy = -100;
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  // Use pointer: fine to detect devices with a precise pointer (mouse/trackpad)
+  // This works correctly on Windows laptops with touchscreens
+  const hasFineCursor = window.matchMedia('(pointer: fine)').matches;
+  const isTouchDevice = !hasFineCursor;
 
   // Trail particle pool
   const trails = [];
@@ -23,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (!isTouchDevice && cursorWrap && trailCanvas) {
+    // Activate custom cursor — tells CSS to hide the native one
+    document.body.classList.add('custom-cursor-active');
     resizeTrailCanvas();
     window.addEventListener('resize', resizeTrailCanvas);
 
@@ -316,4 +321,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('scroll', updateActiveNav, { passive: true });
+
+  // =============== NORMI CHATBOT ===============
+  const normiFab = document.getElementById('normiFab');
+  const normiPopup = document.getElementById('normiPopup');
+  const normiGreeting = document.getElementById('normiGreeting');
+  const normiGreetingClose = document.getElementById('normiGreetingClose');
+
+  if (normiFab && normiPopup) {
+    normiFab.addEventListener('click', () => {
+      const isOpen = normiPopup.classList.toggle('open');
+      normiFab.classList.toggle('open', isOpen);
+
+      // Hide greeting when chat opens
+      if (isOpen && normiGreeting) {
+        normiGreeting.classList.add('hidden');
+      }
+    });
+  }
+
+  // Close greeting tooltip
+  if (normiGreetingClose && normiGreeting) {
+    normiGreetingClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      normiGreeting.classList.add('hidden');
+    });
+  }
+
+  // Auto-hide greeting after 8 seconds
+  if (normiGreeting) {
+    setTimeout(() => {
+      if (!normiGreeting.classList.contains('hidden')) {
+        normiGreeting.classList.add('hidden');
+      }
+    }, 8000);
+  }
 });
